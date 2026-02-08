@@ -24,15 +24,19 @@ mod drivers;
 use drivers::uart::Serial;
 
 use crate::drivers::Driver;
-use crate::drivers::clk::Clock;
+use crate::drivers::clk::pll::PLL;
+use crate::drivers::clk::soc::SoCClocks;
 use crate::drivers::efuse::Efuse;
 use crate::drivers::iram::IRAM;
 
 unsafe fn early_init() {
     uwriteln!(&mut Serial, "Early init triggered");
 
+    uwriteln!(&mut Serial, "PLL init");
+    unsafe { PLL::init() };
+
     uwriteln!(&mut Serial, "Clock init");
-    unsafe { Clock::init() };
+    unsafe { SoCClocks::init() };
 
     uwriteln!(&mut Serial, "UART re-init");
     unsafe { Serial::init() };

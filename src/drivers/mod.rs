@@ -27,3 +27,7 @@ pub(super) unsafe fn writel(reg: usize, value: usize) {
 pub(super) const fn bit(n: usize) -> usize {
     1 << n
 }
+
+pub(super) const fn genmask(h: usize, l: usize) -> usize {
+    (!0 << l) & (!0 >> (32 - 1 - h))
+}
