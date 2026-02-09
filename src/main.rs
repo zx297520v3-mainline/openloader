@@ -32,8 +32,9 @@ use crate::drivers::clk::soc::SoCClocks;
 use crate::drivers::dram::Dram;
 use crate::drivers::efuse::Efuse;
 use crate::drivers::iram::IRAM;
-use crate::drivers::usb::UsbDriver;
-use crate::drivers::{Driver, StatelessDriver};
+use crate::drivers::usb::Usb;
+use crate::drivers::zte_protocol::ZteProtocol;
+use crate::drivers::{Driver, DriverMut, StatelessDriver};
 
 unsafe fn early_init() {
     uwriteln!(&mut Serial, "Early init triggered");
@@ -72,6 +73,20 @@ unsafe fn init() {
     uwriteln!(&mut Serial, "Init finished");
 }
 
+unsafe fn late_init() {
+    uwriteln!(&mut Serial, "Late init triggered");
+
+    unsafe {
+        let mut usb = Usb::new();
+        usb.init();
+
+        let mut protocol = ZteProtocol::new(usb);
+        protocol.dispatch();
+    }
+
+    uwriteln!(&mut Serial, "Late init finished");
+}
+
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn main() -> ! {
     uwriteln!(&mut Serial, "Hello from Rust :)");
@@ -79,12 +94,10 @@ pub unsafe extern "C" fn main() -> ! {
     unsafe {
         early_init();
         init();
+        late_init();
     }
 
-    uwriteln!(&mut Serial, "Starting USB bootloader protocol");
+    uwriteln!(&mut Serial, "All done, spinning forever");
 
-    unsafe {
-        UsbDriver::init();
-        UsbDriver::receive_and_boot();
-    }
+    loop {}
 }
