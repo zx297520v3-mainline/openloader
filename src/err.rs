@@ -1,6 +1,7 @@
 use ufmt::{uDisplay, uwrite};
 
 pub enum Error {
+    DRAM,
     USB(USBError),
 }
 
@@ -17,6 +18,7 @@ impl uDisplay for Error {
     {
         match self {
             Self::USB(usb) => uwrite!(f, "USB: {}", usb),
+            Self::DRAM => uwrite!(f, "DRAM R/W test failed"),
         }
     }
 }

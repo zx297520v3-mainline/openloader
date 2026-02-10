@@ -2,15 +2,17 @@ use derive_ctor::ctor;
 use derive_more::IsVariant;
 use ufmt::{uDisplay, uwrite};
 
-use crate::drivers::Driver;
 use crate::drivers::clk::{dram::DramClk, soc::MATRIX_BASE};
 use crate::drivers::delay::nsdelay;
 use crate::drivers::dram_control::DramControl;
 use crate::drivers::dram_phy::DramPhy;
+use crate::drivers::{Driver, readl};
+use crate::err::Error;
 
 use super::writel;
 
 pub(super) const MATRIX_DDR_RESET: usize = MATRIX_BASE + 0x100;
+const DRAM_BASE: usize = 0x20000000;
 
 #[derive(Clone, Copy, Default, IsVariant)]
 pub enum DramSize {
@@ -58,5 +60,21 @@ impl Driver for Dram {
 
             phy.train();
         }
+    }
+}
+
+impl Dram {
+    pub unsafe fn verify(&self) -> Result<(), Error> {
+        for i in (0..0x100000).step_by(4) {
+            unsafe { writel(DRAM_BASE + i, i) }
+        }
+
+        for i in (0..0x100000).step_by(4) {
+            if unsafe { readl(DRAM_BASE + i) } != i {
+                return Err(Error::DRAM);
+            }
+        }
+
+        Ok(())
     }
 }

@@ -69,7 +69,16 @@ unsafe fn init() {
     uwriteln!(&mut Serial, "\tDRAM size: {}", efuse.dram_size);
 
     uwriteln!(&mut Serial, "DRAM init");
-    unsafe { Dram::new(efuse.dram_size).init() };
+    let dram = Dram::new(efuse.dram_size);
+    unsafe {
+        dram.init();
+
+        if let Err(e) = dram.verify() {
+            uwriteln!(&mut Serial, "Error on DRAM verification: {}", e);
+        } else {
+            uwriteln!(&mut Serial, "DRAM R/W test pass");
+        }
+    }
 
     uwriteln!(&mut Serial, "Init finished");
 }
