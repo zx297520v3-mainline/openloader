@@ -17,10 +17,11 @@ global_asm!(
     .global start
     .section .text.start
     start:
-        ldr r1, =0
-        ldr r1, [r1]
+        ldr r1, =0x8a000
         msr msp, r1
         ldr r0, =main
+        add r0, pc
+        subs r0, #4
         bx r0"
 );
 
